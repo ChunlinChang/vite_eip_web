@@ -1,1 +1,0 @@
-export { EipIndex } from "./EipIndex";

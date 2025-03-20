@@ -1,3 +1,11 @@
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Profile from "../Profile.jsx";
+import Callback from "../Callback";
+import Login from "../Loginerror.jsx";
+
+import { useNavigate } from "react-router-dom";
+import { login, logout, getUserInfo } from "../../auth";
+
 import {
   InstagramIcon,
   LinkedinIcon,
@@ -6,7 +14,7 @@ import {
   XIcon,
   YoutubeIcon,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -37,6 +45,13 @@ import {
 
 export const EipIndex = () => {
 
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getUserInfo().then(setUser);
+  }, []);
+
   // 控制側邊抽屜的狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -62,7 +77,7 @@ export const EipIndex = () => {
     {
       id: "item-2",
       title: "hello",
-      content: "0011111111111111111110",
+      content: "00111122222222222222211110",
     },
     {
       id: "item-3",
@@ -114,8 +129,8 @@ export const EipIndex = () => {
 
   return (
     <div className="flex flex-col items-start relative bg-[#3a6ba5] min-h-screen">
-
       <header className="flex items-center justify-between px-3.5 py-6 relative w-full bg-white border-b border-[#d9d9d9]">
+        
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full hover:scale-110 transition-transform duration-150">
@@ -123,54 +138,36 @@ export const EipIndex = () => {
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
+
           <SheetContent side="left" className="w-[293px] p-0">
-            <div className="flex items-center justify-between h-[47px] px-3.5 py-[37px] bg-neutral-100 border-b border-[#d9d9d9]">
-              <span className="font-single-line-body-base text-black">
-                選單
-              </span>
-            </div>
-            <nav className="bg-grayswhite">
+            {/* 渲染 menuItems */}
+            <ul className="space-y-2">
               {menuItems.map((item) => (
-                <div key={item.id} className="flex flex-col min-h-14">
-                  <div className="flex h-14 items-center gap-4 px-4 py-2 w-full">
-                    <div className="flex flex-col items-start justify-center flex-1 self-stretch">
-                      <div className="font-m3-body-large text-m3syslighton-surface">
-                        {item.label}
-                      </div>
-                    </div>
-                    {item.hasSwitch && (
-                      <div className="inline-flex flex-col items-start gap-2.5">
-                        <div className="flex p-0.5 items-center  bg-m3syslightsurface-container-highest rounded-[100px] border-2 border-solid border-[#79747e]">
-                          <Switch
-                            id="dark-mode"
-                            className="flex -top-2.5 -left-4"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <Separator />
-                </div>
+                <li key={item.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 rounded-md cursor-pointer">
+                  <span className="text-lg">{item.label}</span>
+                  {item.hasSwitch && <Switch />}
+                </li>
               ))}
-            </nav>
+            </ul>
           </SheetContent>
         </Sheet>
 
         <div className="flex items-center w-full max-w-xl px-4 py-3 relative bg-white rounded-full border border-solid border-[#d9d9d9]">
-          <Input
-            className="flex-1 bg-transparent font-single-line-body-base text-[#1e1e1e] border-0 p-0"
-            placeholder="搜尋"
-          />
+          <Input className="flex-1 bg-transparent font-single-line-body-base text-[#1e1e1e] border-0 p-0" placeholder="搜尋" />
           <XIcon className="w-4 h-4 cursor-pointer ml-2" />
         </div>
 
-        <Avatar className="w-10 h-10">
-          <AvatarImage
-            src="https://c.animaapp.com/m87e0cjjZocDOr/img/shape.png"
-            alt="User avatar"
-          />
-          <AvatarFallback>User</AvatarFallback>
-        </Avatar>
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10">
+              <AvatarImage src="https://c.animaapp.com/m87e0cjjZocDOr/img/shape.png" alt="User avatar" onClick={() => navigate("/profile")} />
+              <AvatarFallback>{user.username ? user.username[0].toUpperCase() : "U"}</AvatarFallback>
+            </Avatar>
+            <Button onClick={logout}>登出</Button>
+          </div>
+        ) : (
+          <Button onClick={login}>登入</Button>
+        )}
       </header>
 
       <div className="flex flex-col items-center justify-center px-4 py-2 relative w-full">
@@ -299,3 +296,6 @@ export const EipIndex = () => {
     </div>
   );
 };
+
+export default EipIndex;
+
