@@ -1,8 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Profile from "../Profile.jsx";
-import Callback from "../Callback";
-import Login from "../Loginerror.jsx";
-
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { login, logout, getUserInfo } from "../../auth";
 
@@ -43,14 +39,56 @@ import {
 
 
 
-export const EipIndex = () => {
+export const EipIndex = ({ currentUser }) => {
 
   const [user, setUser] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getUserInfo().then(setUser);
+    getUserInfo().then((userData) => {
+      if (!userData) {
+        login(); // 如果未登入，導向登入頁面
+      } else {
+        setUser(userData);
+      }
+    });
+
+  // useEffect(() => {
+  //   getUserInfo().then((userData) => {
+  //     setUser(userData); // 🔹 不再強制 login()
+  //   });
+
+    // 取得公告列表
+    // axios.get(`${import.meta.env.VITE_API_URL}/announcements`)
+    //   .then(response => {
+    //     if (Array.isArray(response.data)) {
+    //       setAnnouncements(response.data);
+    //     } else {
+    //       console.error("API 回應的格式錯誤：", response.data);
+    //       setAnnouncements([]);
+    //     }
+    //   })
+    //   .catch(error => {
+    //     console.error("無法獲取公告", error);
+    //     setAnnouncements([]);
+    //   });
+
   }, []);
+
+  // 刪除公告
+  const handleDelete = (id) => {
+    if (!window.confirm("確定要刪除這則公告嗎？")) return;
+
+    axios.delete(`${import.meta.env.VITE_API_URL}/announcements/${id}`, {
+      data: { authorId: user.email } // 🔹 只允許作者刪除
+    })
+      .then(() => {
+        setAnnouncements(prev => prev.filter(a => a.id !== id)); // 🔹 前端同步更新
+      })
+      .catch(error => console.error("公告刪除失敗", error));
+  };
 
   // 控制側邊抽屜的狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -66,35 +104,7 @@ export const EipIndex = () => {
     { id: "settings", label: "設定" },
   ];
 
-  // News data for accordion
-  const newsItems = [
-    {
-      id: "item-1",
-      title: "Title",
-      content:
-        "Answer the frequently asked question in a simple sentence, a longish paragraph, or even in a list.",
-    },
-    {
-      id: "item-2",
-      title: "hello",
-      content: "00111122222222222222211110",
-    },
-    {
-      id: "item-3",
-      title: "Title",
-      content: "",
-    },
-    {
-      id: "item-4",
-      title: "Title",
-      content: "",
-    },
-    {
-      id: "item-5",
-      title: "Title",
-      content: "",
-    },
-  ];
+
 
   const systemEntries = [
     {
@@ -130,7 +140,7 @@ export const EipIndex = () => {
   return (
     <div className="flex flex-col items-start relative bg-[#3a6ba5] min-h-screen">
       <header className="flex items-center justify-between px-3.5 py-6 relative w-full bg-white border-b border-[#d9d9d9]">
-        
+
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full hover:scale-110 transition-transform duration-150">
@@ -140,7 +150,6 @@ export const EipIndex = () => {
           </SheetTrigger>
 
           <SheetContent side="left" className="w-[293px] p-0">
-            {/* 渲染 menuItems */}
             <ul className="space-y-2">
               {menuItems.map((item) => (
                 <li key={item.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 rounded-md cursor-pointer">
@@ -163,6 +172,7 @@ export const EipIndex = () => {
               <AvatarImage src="https://c.animaapp.com/m87e0cjjZocDOr/img/shape.png" alt="User avatar" onClick={() => navigate("/profile")} />
               <AvatarFallback>{user.username ? user.username[0].toUpperCase() : "U"}</AvatarFallback>
             </Avatar>
+            <p>歡迎, {user.username}</p>
             <Button onClick={logout}>登出</Button>
           </div>
         ) : (
@@ -173,7 +183,7 @@ export const EipIndex = () => {
       <div className="flex flex-col items-center justify-center px-4 py-2 relative w-full">
         <div className="items-center relative inline-flex flex-col gap-2">
           <h1 className="font-bold text-white text-2xl text-center tracking-[-0.48px] leading-[28.8px] font-['Inter',Helvetica]">
-            高科EIP入口網站
+            UCL EIP 入口網站
           </h1>
         </div>
       </div>
@@ -182,29 +192,37 @@ export const EipIndex = () => {
         <CardContent className="p-0">
           <div className="pt-0 p-4">
             <div className="mb-1 p-5 border border-solid border-[#d9d9d9] rounded-lg bg-white mt-0">
-              <h2 className="font-semibold tracking-[-0.32px] leading-[19.2px] font-['Inter',Helvetica] text-[#1e1e1e] text-base">
-                最新消息
-              </h2>
 
-              <ScrollArea className="h-[290px] w-full pr-2 bg-white overflow-y-auto rounded-lg mt-5">
-                <Accordion type="single" collapsible className="w-full">
-                  {newsItems.map((item) => (
-                    <AccordionItem
-                      key={item.id}
-                      value={item.id}
-                      className="mb-4 border border-solid border-[#d9d9d9] rounded-lg overflow-hidden"
-                    >
-                      <AccordionTrigger className="px-4 py-3 font-body-strong text-[#1e1e1e]">
-                        {item.title}
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-4 pt-0 font-body-base text-[#1e1e1e]">
-                        {item.content}
-                      </AccordionContent>
-                    </AccordionItem>
+
+              <div>
+                <h2>佈告欄</h2>
+                <button onClick={() => navigate("/announcementform")}>發布公告</button>
+                <button onClick={() => navigate("/tasks")}>Flowable任務清單</button>
+
+                <div className="announcement-list">
+                  {announcements.map(a => (
+                    <div key={a.id} className="announcement-item">
+                      <h3>{a.title}</h3>
+                      <p><strong>發布者：</strong> {a.authorName} </p>
+                      <p><strong>發布時間：</strong> {new Date(a.created_at).toLocaleString()}</p>
+                      {a.updated_at && a.updated_at !== a.created_at && (
+                        <p><strong>最後更新：</strong> {new Date(a.updated_at).toLocaleString()}</p>
+                      )}
+                      <p dangerouslySetInnerHTML={{ __html: a.content }}></p>
+
+                      {/* 只有自己的公告可以編輯或刪除 */}
+                      {user && user.email === a.authorId && (
+                        <>
+                          <button onClick={() => navigate(`/announcements/${a.id}`)}>編輯</button>
+                          <button onClick={() => handleDelete(a.id)}>刪除</button>
+                        </>
+                      )}
+                    </div>
                   ))}
-                </Accordion>
-                <ScrollBar orientation="vertical" />
-              </ScrollArea>
+                </div>
+              </div>
+
+
             </div>
           </div>
         </CardContent>

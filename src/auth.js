@@ -41,5 +41,6 @@ export const logout = () => {
   Cookies.remove("access_token", { secure: true, sameSite: "None" });
   Cookies.remove("refresh_token", { secure: true, sameSite: "None" });
 
-  window.location.href = "/eip/";
+  login();
+
 };

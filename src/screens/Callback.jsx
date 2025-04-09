@@ -47,7 +47,7 @@ const Callback = () => {
 
         const { access_token, refresh_token } = response.data;
 
-        // **🔥 使用 Cookie 存 Token**
+        // **使用 Cookie 存 Token**
         Cookies.set("access_token", access_token, {
           expires: 0.02, // **30 分鐘過期**
           secure: true,
@@ -62,7 +62,7 @@ const Callback = () => {
           path: "/"
         });
 
-        navigate("/profile"); // 成功後轉跳到 Profile 頁面
+        navigate("/"); // 成功後轉跳到首頁
       })
       .catch((error) => {
         console.error("Token exchange failed", error.response ? error.response.data : error);
